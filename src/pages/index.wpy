@@ -1,0 +1,384 @@
+<style lang="less">
+  @import '../less/base.less';
+</style>
+<template>
+  <view class="index-container" wx:if="{{showIndex}}">
+    <!-- <open-data type="userAvatarUrl"></open-data> -->
+    <!-- <open-data type="userNickName"></open-data> -->
+    <!-- <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">获取用户信息</button> -->
+    <swiper indicator-active-color="#fff" indicator-dots="{{indicatorDots}}" autoplay="{{autoplay}}" interval="{{interval}}"
+      duration="{{duration}}">
+      <block wx:for="{{bannerUrl}}" wx:key="id">
+        <swiper-item>
+          <image src="{{host}}{{item.art_thumb}}" @tap="artDetails" class="slide-image" width="100%" height="180" mode="widthFix" data-id="{{item.id}}"
+          />
+        </swiper-item>
+      </block>
+    </swiper>
+    <!-- 中间页签 -->
+    <view class="top-tag">
+      <view class="tag-item color_1" @tap="about" data-id="2">
+        <image src="../images/t_1.png" class="img-icon"></image>
+        <view class="text-name">组织架构</view>
+      </view>
+      <view class="tag-item color_2" @tap="leader">
+        <image src="../images/t_2.png" class="img-icon"></image>
+        <view class="text-name">协会领导</view>
+      </view>
+      <view class="tag-item color_3" @tap="membersMore" data-id="2">
+        <image src="../images/t_3.png" class="img-icon"></image>
+        <view class="text-name" data-id="2">会员单位</view>
+      </view>
+
+      <view class="tag-item color_4" @tap="about" data-id="4">
+        <image src="../images/t_4.png" class="img-icon"></image>
+        <view class="text-name">入会指南</view>
+      </view>
+      <view class="tag-item color_5" @tap="register">
+        <image src="../images/t_5.png" class="img-icon"></image>
+        <view class="text-name">会员申请</view>
+      </view>
+      <view class="tag-item color_6" @tap="figureMore" data-id="3">
+        <image src="../images/t_6.png" class="img-icon"></image>
+        <view class="text-name">双创人物</view>
+      </view>
+    </view>
+    <!-- 热门资讯 -->
+    <view class="hot-mode">
+      <view class="mode-title">
+        <view class="title-text">热门资讯</view>
+        <view class="more-text" @tap="articleMore">更多 &gt;&gt;</view>
+      </view>
+      <block wx:for="{{article}}" wx:key="this">
+        <view class="img-text-list" data-id="{{item.id}}" @tap="artDetails">
+          <image src="{{host}}{{item.art_thumb}}" class="img" mode="widthFix"></image>
+          <view class="list-con">
+            <view class="art-title">{{item.art_title}}</view>
+            <view class="art-info">{{item.abstract}}</view>
+            <view class="time">发布时间：{{item.create_time}}</view>
+          </view>
+        </view>
+      </block>
+    </view>
+    <!-- 会员单位 -->
+    <!-- <view class="hot-mode">
+      <view class="mode-title">
+        <view class="title-text">会员单位</view>
+        <view class="more-text" @tap="membersMore" data-id="1">更多 &gt;&gt;</view>
+      </view>
+      <block wx:for="{{company}}" wx:key="this">
+        <view class="list-items" data-id="{{item.id}}" @tap="memberDetails">
+          {{item.name}}
+        </view>
+      </block>
+    </view> -->
+
+    <!-- 双创人物 -->
+    <view class="hot-mode">
+      <view class="mode-title">
+        <view class="title-text">双创人物</view>
+        <view class="more-text" @tap="figureMore">更多 &gt;&gt;</view>
+      </view>
+      <block wx:for="{{figure}}" wx:key="this">
+        <view class="img-text-list" data-id="{{item.id}}" @tap="figDetails">
+          <image src="{{host}}{{item.img}}" class="img" mode="widthFix"></image>
+          <view class="list-con">
+            <view class="fig-info">{{item.abstract}}</view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 网创智库 -->
+    <view class="hot-mode">
+      <view class="mode-title">
+        <view class="title-text">网创智库</view>
+        <view class="more-text" @tap="zkPersonMore">更多 &gt;&gt;</view>
+      </view>
+      <!-- 横向滚动 -->
+      <view class="section section_gap">
+        <scroll-view class="scroll-view_H" scroll-x style="width: 100%;height:356rpx;">
+          <block wx:for="{{counselor}}" wx:key="this">
+            <view class="zc-list scroll-view-item_H" data-id="{{item.id}}" @tap="zkPersonMore">
+              <image class="pics" src="{{host}}{{item.pics}}" mode="widthFix"></image>
+              <view class="name">{{item.name}}</view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+
+    </view>
+
+
+    <!-- 网创学院 -->
+    <view class="hot-mode">
+      <view class="mode-title">
+        <view class="title-text">网创学院</view>
+        <view class="more-text" @tap="schoolMore">更多 &gt;&gt;</view>
+      </view>
+
+      <block wx:for="{{schools}}" wx:key="this">
+        <view class="img-text-list wc-school" data-id="{{item.id}}" @tap="sDetailes">
+          <view class="list-con">
+            <view class="art-title">{{item.art_title}}</view>
+            <view class="art-info">{{item.abstract}}</view>
+          </view>
+          <image src="{{host}}{{item.art_thumb}}" class="img"></image>
+        </view>
+      </block>
+
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy';
+  import { formatDate, formatDateTime } from '../utils/dateFormatTime';
+  import httpUtils from '../utils/httpUtils';
+  // import Api from '../utils/api';//开发版
+  import Api from '../utils/config';//线上版
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '首页',
+      enablePullDownRefresh: false
+    };
+    data = {
+      bannerUrl: [],
+      indicatorDots: true,
+      autoplay: true,
+      duration: 1000,
+      interval: 5000,
+      // company: [],
+      figure:[],
+      counselor: [],
+      schools: [],
+      article: [],
+      host: '',
+      showIndex: false
+    };
+
+    methods = {
+      articleMore() {
+        //更多资讯
+        wx.switchTab({
+          url: './news'
+        });
+      },
+      artDetails(e) {
+        //资讯详情
+        var id = e.currentTarget.dataset.id;
+        wx.navigateTo({
+          url: './details?id=' + id + '&type=1'
+        });
+      },
+      sDetailes(e) {
+        //学院资讯
+        var id = e.currentTarget.dataset.id;
+        wx.navigateTo({
+          url: './details?id=' + id + '&type=2'
+        });
+      },
+      zkPersonMore() {
+        //更多智库
+        wx.navigateTo({
+          url: './person'
+        });
+      },
+      leader() {
+        //协会领导
+        wx.navigateTo({
+          url: './leader'
+        });
+      },
+      membersMore(e) {
+        //更多会员
+        var id = e.currentTarget.dataset.id;
+        wx.setStorage({
+          key: 'memberId',
+          data: id
+        });
+        wx.switchTab({
+          url: './member'
+        });
+      },
+      figDetails(e){
+        //人物详情
+        var id = e.currentTarget.dataset.id;
+        wx.navigateTo({
+          url: './figure-details?id=' + id 
+        });
+      },
+      figureMore(e){
+        //更多人物
+        wx.switchTab({
+          url: './figures'
+        });
+      },
+      memberDetails(e) {//会员详情
+        var id = e.currentTarget.dataset.id;
+        wx.navigateTo({
+          url: './member-details?id=' + id + '&type=1'
+        });
+      },
+      about(e) {//组织架构，协会指南，分支机构
+        var id = e.currentTarget.dataset.id;
+        wx.navigateTo({
+          url: './other-us?id=' + id
+        });
+      },
+      schoolMore() {//网创学院
+        wx.navigateTo({
+          url: './school'
+        });
+      },
+      register() {
+        //注册
+        wx.navigateTo({
+          url: './register'
+        });
+      }
+    };
+
+    events = {};
+
+    onShareAppMessage() {
+      return {
+        title: '深圳市网创会',
+        path: '/pages/index'
+        // imageUrl: '../images/logo_3.jpg'
+      }
+    }
+
+    onPullDownRefresh() {
+      let self = this;
+      // this.host = Api.host + '/';
+      this.host = Api.img + '/';
+      httpUtils.get(Api.index).then(res => {
+        for (let i = 0; i < res.article.length; i++) {//formatDate
+          res.article[i].create_time = formatDate(res.article[i].create_time);
+        }
+        self.setData({
+          article: res.article,
+          figure: res.figure,
+          schools: res.schools,
+          counselor: res.counselor,
+          bannerUrl: res.hots
+        });
+      });
+      wx.stopPullDownRefresh();
+    }
+    onShow() {
+      let self = this;
+      // this.host = Api.host + '/';
+      this.host = Api.img + '/';
+      httpUtils.get(Api.index).then(res => {
+        for (let i = 0; i < res.article.length; i++) {//formatDate
+          res.article[i].create_time = res.article[i].create_time.split(' ')[0];
+        }
+        self.setData({
+          article: res.article,
+          figure: res.figure,
+          schools: res.schools,
+          counselor: res.counselor,
+          bannerUrl: res.hots,
+          showIndex: true
+        });
+      });
+      self.$apply();
+    };
+
+    // loginFun() {
+    //   wx.login({//登录
+    //     success: (res) => {
+    //       console.log(res.code)
+    //       if (res.code) {
+    //         //发起网络请求
+    //         httpUtils.get(Api.login + res.code).then((res) => {
+    //           console.log(res);
+    //         })
+    //       } else {
+    //         console.log('登录失败！' + res.errMsg)
+    //       }
+    //     }
+    //   });
+    // };
+
+
+    onGotUserInfo(e) {
+      console.log(e)
+    }
+    onTabItemTap() {
+      let self = this;
+      // this.host = Api.host + '/';
+      this.host = Api.img + '/';
+      httpUtils.get(Api.index).then(res => {
+        for (let i = 0; i < res.article.length; i++) {//formatDate
+          res.article[i].create_time = res.article[i].create_time.split(' ')[0];
+        }
+        self.setData({
+          article: res.article,
+          figure: res.figure,
+          schools: res.schools,
+          counselor: res.counselor,
+          bannerUrl: res.hots,
+          showIndex: true
+        });
+      });
+      self.$apply();
+    }
+    onLoad() {
+      // let self = this;
+
+      // // this.host = Api.host + '/';
+      // this.host = Api.img + '/';
+      // httpUtils.get(Api.index).then(res => {
+      //   for (let i = 0; i < res.article.length; i++) {//formatDate
+      //     res.article[i].create_time = formatDate(res.article[i].create_time);
+      //   }
+      //   self.setData({
+      //     article: res.article,
+      //     company: res.company,
+      //     schools: res.schools,
+      //     counselor: res.counselor,
+      //     bannerUrl: res.hots
+      //   });
+      // });
+      // self.$apply();
+
+      // this.loginFun();//登录
+      // wx.checkSession({//检查登录session是否过期
+      //   success: (res) => {
+      //     wx.showToast({
+      //       title: '登录未过期!',
+      //       duration: 3000
+      //     })
+      //   },
+      //   fail: (res) => {
+      //     wx.showModal({
+      //       title: '提示',
+      //       content: '登录已过期是否要重新登录？'
+      //     })
+      //     //发起再次登录
+      //     this.loginFun();//登录
+      //   }
+      // });
+      // // 查看是否授权
+      // // this.onGotUserInfo()
+      // wx.getSetting({
+      //   success: function (res) {
+      //     if (res.authSetting['scope.userInfo']) {
+      //       // 已经授权，可以直接调用 getUserInfo 获取头像昵称
+      //       wx.getUserInfo({
+      //         success: function (res) {
+      //           console.log(res)
+      //         }
+      //       })
+      //     }
+      //   }
+      // })
+
+
+    }
+  }
+</script>
